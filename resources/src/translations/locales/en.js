@@ -240,6 +240,8 @@ export default {
     Reference: 'Reference',
     Supplier: 'Supplier',
     PaymentStatus: 'Payment Status',
+    Paymentchoice: 'Payment Method',
+    Choose_Payment_Method: 'Choose Payment Method',
     Customer: 'Customer',
     CustomerCode: 'Customer Code',
     Status: 'Status',

@@ -4103,7 +4103,7 @@ class ReportController extends BaseController
          );
          $data = array();
 
-         $sale_details_data = SaleDetail::with('product','sale','sale.client','sale.warehouse')
+         $sale_details_data = SaleDetail::with('product','sale','sale.client','sale.warehouse','sale.facture')
             ->where(function ($query) use ($view_records) {
                 if (!$view_records) {
                     return $query->whereHas('sale', function ($q) use ($request) {
@@ -4126,6 +4126,14 @@ class ReportController extends BaseController
              return $query->when($request->filled('warehouse_id'), function ($query) use ($request) {
                  return $query->whereHas('sale.warehouse', function ($q) use ($request) {
                      $q->where('warehouse_id', '=', $request->warehouse_id);
+                 });
+             });
+         })
+         
+         ->where(function ($query) use ($request) {
+             return $query->when($request->filled('payment_method'), function ($query) use ($request) {
+                 return $query->whereHas('sale.facture', function ($q) use ($request) {
+                     $q->where('Reglement', '=', $request->payment_method);
                  });
              });
          })
@@ -4197,6 +4205,17 @@ class ReportController extends BaseController
                  $product_name = $detail['product']['name'];
              }
  
+             // Get payment methods from all payments for this sale
+             $payment_methods = [];
+             if($detail['sale']->facture && count($detail['sale']->facture) > 0) {
+                 foreach($detail['sale']->facture as $payment) {
+                     if($payment->Reglement && !in_array($payment->Reglement, $payment_methods)) {
+                         $payment_methods[] = $payment->Reglement;
+                     }
+                 }
+             }
+             $payment_method = !empty($payment_methods) ? implode(', ', $payment_methods) : '';
+
              $item['date'] = $detail->date;
              $item['Ref'] = $detail['sale']->Ref;
              $item['client_name'] = $detail['sale']['client']->name;
@@ -4205,7 +4224,8 @@ class ReportController extends BaseController
              $item['total'] = $detail->total;
              $item['product_name'] = $product_name;
              $item['unit_sale'] = $unit?$unit->ShortName:'';
- 
+             $item['payment_method'] = $payment_method;
+
              $data[] = $item;
          }
 
@@ -4221,11 +4241,22 @@ class ReportController extends BaseController
 
        $customers = client::where('deleted_at', '=', null)->get(['id', 'name']);
 
+       // Get unique payment methods for filter dropdown
+       $payment_methods = PaymentSale::where('deleted_at', '=', null)
+           ->distinct()
+           ->whereNotNull('Reglement')
+           ->where('Reglement', '!=', '')
+           ->pluck('Reglement')
+           ->unique()
+           ->values()
+           ->toArray();
+
         return response()->json([
             'totalRows' => $totalRows,
             'sales' => $data,
             'customers' => $customers,
             'warehouses' => $warehouses,
+            'payment_methods' => $payment_methods,
         ]);
 
     }

@@ -152,6 +152,18 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -206,8 +218,10 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       showDropdown: false,
       Filter_Client: "",
       Filter_warehouse: "",
+      Filter_payment_method: "",
       customers: [],
       warehouses: [],
+      payment_methods: [],
       sales: [],
       limit: "10",
       today_mode: true,
@@ -244,6 +258,11 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       }, {
         label: this.$t("warehouse"),
         field: "warehouse_name",
+        tdClass: "text-left",
+        thClass: "text-left"
+      }, {
+        label: this.$t("Paymentchoice"),
+        field: "payment_method",
         tdClass: "text-left",
         thClass: "text-left"
       }, {
@@ -355,6 +374,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       this.search = "";
       this.Filter_Client = "";
       this.Filter_warehouse = "";
+      this.Filter_payment_method = "";
       this.Get_Sales(this.serverParams.page);
     },
     //------------------------------Formetted Numbers -------------------------\\
@@ -383,6 +403,9 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         title: "Warehouse",
         dataKey: "warehouse_name"
       }, {
+        title: "Payment Method",
+        dataKey: "payment_method"
+      }, {
         title: "Product",
         dataKey: "product_name"
       }, {
@@ -403,6 +426,8 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         this.Filter_Client = "";
       } else if (this.Filter_warehouse === null) {
         this.Filter_warehouse = "";
+      } else if (this.Filter_payment_method === null) {
+        this.Filter_payment_method = "";
       }
     },
     //----------------------------- Submit Date Picker -------------------\\
@@ -430,10 +455,11 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
       this.setToStrings();
       this.get_data_loaded();
-      axios.get("report/product_sales_report?page=" + page + "&client_id=" + this.Filter_Client + "&warehouse_id=" + this.Filter_warehouse + "&SortField=" + this.serverParams.sort.field + "&SortType=" + this.serverParams.sort.type + "&search=" + this.search + "&limit=" + this.limit + "&to=" + this.endDate + "&from=" + this.startDate).then(function (response) {
+      axios.get("report/product_sales_report?page=" + page + "&client_id=" + this.Filter_Client + "&warehouse_id=" + this.Filter_warehouse + "&payment_method=" + this.Filter_payment_method + "&SortField=" + this.serverParams.sort.field + "&SortType=" + this.serverParams.sort.type + "&search=" + this.search + "&limit=" + this.limit + "&to=" + this.endDate + "&from=" + this.startDate).then(function (response) {
         _this2.sales = response.data.sales;
         _this2.customers = response.data.customers;
         _this2.warehouses = response.data.warehouses;
+        _this2.payment_methods = response.data.payment_methods || [];
         _this2.totalRows = response.data.totalRows;
         _this2.rows[0].children = _this2.sales;
         // Complete the animation of theprogress bar.
@@ -11034,7 +11060,7 @@ var render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._sel
       mode: 'records',
       nextLabel: 'next',
       prevLabel: 'prev',
-    },"styleClass":_vm.showDropdown?'tableOne table-hover vgt-table full-height':'tableOne table-hover vgt-table non-height'},on:{"on-page-change":_vm.onPageChange,"on-per-page-change":_vm.onPerPageChange,"on-sort-change":_vm.onSortChange,"on-search":_vm.onSearch}},[_c('div',{staticClass:"mt-2 mb-3",attrs:{"slot":"table-actions"},slot:"table-actions"},[_c('b-button',{directives:[{name:"b-toggle",rawName:"v-b-toggle.sidebar-right",modifiers:{"sidebar-right":true}}],attrs:{"variant":"outline-info ripple m-1","size":"sm"}},[_c('i',{staticClass:"i-Filter-2"}),_vm._v("\n          "+_vm._s(_vm.$t("Filter"))+"\n        ")]),_vm._v(" "),_c('b-button',{attrs:{"size":"sm","variant":"outline-success ripple m-1"},on:{"click":function($event){return _vm.Sales_PDF()}}},[_c('i',{staticClass:"i-File-Copy"}),_vm._v(" PDF\n        ")]),_vm._v(" "),_c('vue-excel-xlsx',{staticClass:"btn btn-sm btn-outline-danger ripple m-1",attrs:{"data":_vm.sales,"columns":_vm.columns,"file-name":'sales',"file-type":'xlsx',"sheet-name":'sales'}},[_c('i',{staticClass:"i-File-Excel"}),_vm._v(" EXCEL\n        ")])],1)])],1):_vm._e(),_vm._v(" "),_c('b-sidebar',{attrs:{"id":"sidebar-right","title":_vm.$t('Filter'),"bg-variant":"white","right":"","shadow":""}},[_c('div',{staticClass:"px-3 py-2"},[_c('b-row',[_c('b-col',{attrs:{"md":"12"}},[_c('b-form-group',{attrs:{"label":_vm.$t('Customer')}},[_c('v-select',{attrs:{"reduce":function (label) { return label.value; },"placeholder":_vm.$t('Choose_Customer'),"options":_vm.customers.map(function (customers) { return ({label: customers.name, value: customers.id}); })},model:{value:(_vm.Filter_Client),callback:function ($$v) {_vm.Filter_Client=$$v},expression:"Filter_Client"}})],1)],1),_vm._v(" "),_c('b-col',{attrs:{"md":"12"}},[_c('b-form-group',{attrs:{"label":_vm.$t('warehouse')}},[_c('v-select',{attrs:{"reduce":function (label) { return label.value; },"placeholder":_vm.$t('Choose_Warehouse'),"options":_vm.warehouses.map(function (warehouses) { return ({label: warehouses.name, value: warehouses.id}); })},model:{value:(_vm.Filter_warehouse),callback:function ($$v) {_vm.Filter_warehouse=$$v},expression:"Filter_warehouse"}})],1)],1),_vm._v(" "),_c('b-col',{attrs:{"md":"6","sm":"12"}},[_c('b-button',{attrs:{"variant":"primary btn-block ripple m-1","size":"sm"},on:{"click":function($event){return _vm.Get_Sales(_vm.serverParams.page)}}},[_c('i',{staticClass:"i-Filter-2"}),_vm._v("\n            "+_vm._s(_vm.$t("Filter"))+"\n          ")])],1),_vm._v(" "),_c('b-col',{attrs:{"md":"6","sm":"12"}},[_c('b-button',{attrs:{"variant":"danger ripple btn-block m-1","size":"sm"},on:{"click":function($event){return _vm.Reset_Filter()}}},[_c('i',{staticClass:"i-Power-2"}),_vm._v("\n            "+_vm._s(_vm.$t("Reset"))+"\n          ")])],1)],1)],1)])],1)}
+    },"styleClass":_vm.showDropdown?'tableOne table-hover vgt-table full-height':'tableOne table-hover vgt-table non-height'},on:{"on-page-change":_vm.onPageChange,"on-per-page-change":_vm.onPerPageChange,"on-sort-change":_vm.onSortChange,"on-search":_vm.onSearch}},[_c('div',{staticClass:"mt-2 mb-3",attrs:{"slot":"table-actions"},slot:"table-actions"},[_c('b-button',{directives:[{name:"b-toggle",rawName:"v-b-toggle.sidebar-right",modifiers:{"sidebar-right":true}}],attrs:{"variant":"outline-info ripple m-1","size":"sm"}},[_c('i',{staticClass:"i-Filter-2"}),_vm._v("\n          "+_vm._s(_vm.$t("Filter"))+"\n        ")]),_vm._v(" "),_c('b-button',{attrs:{"size":"sm","variant":"outline-success ripple m-1"},on:{"click":function($event){return _vm.Sales_PDF()}}},[_c('i',{staticClass:"i-File-Copy"}),_vm._v(" PDF\n        ")]),_vm._v(" "),_c('vue-excel-xlsx',{staticClass:"btn btn-sm btn-outline-danger ripple m-1",attrs:{"data":_vm.sales,"columns":_vm.columns,"file-name":'sales',"file-type":'xlsx',"sheet-name":'sales'}},[_c('i',{staticClass:"i-File-Excel"}),_vm._v(" EXCEL\n        ")])],1)])],1):_vm._e(),_vm._v(" "),_c('b-sidebar',{attrs:{"id":"sidebar-right","title":_vm.$t('Filter'),"bg-variant":"white","right":"","shadow":""}},[_c('div',{staticClass:"px-3 py-2"},[_c('b-row',[_c('b-col',{attrs:{"md":"12"}},[_c('b-form-group',{attrs:{"label":_vm.$t('Customer')}},[_c('v-select',{attrs:{"reduce":function (label) { return label.value; },"placeholder":_vm.$t('Choose_Customer'),"options":_vm.customers.map(function (customers) { return ({label: customers.name, value: customers.id}); })},model:{value:(_vm.Filter_Client),callback:function ($$v) {_vm.Filter_Client=$$v},expression:"Filter_Client"}})],1)],1),_vm._v(" "),_c('b-col',{attrs:{"md":"12"}},[_c('b-form-group',{attrs:{"label":_vm.$t('warehouse')}},[_c('v-select',{attrs:{"reduce":function (label) { return label.value; },"placeholder":_vm.$t('Choose_Warehouse'),"options":_vm.warehouses.map(function (warehouses) { return ({label: warehouses.name, value: warehouses.id}); })},model:{value:(_vm.Filter_warehouse),callback:function ($$v) {_vm.Filter_warehouse=$$v},expression:"Filter_warehouse"}})],1)],1),_vm._v(" "),_c('b-col',{attrs:{"md":"12"}},[_c('b-form-group',{attrs:{"label":_vm.$t('Paymentchoice')}},[_c('v-select',{attrs:{"reduce":function (label) { return label.value; },"placeholder":_vm.$t('Choose_Payment_Method'),"options":_vm.payment_methods.map(function (method) { return ({label: method, value: method}); })},model:{value:(_vm.Filter_payment_method),callback:function ($$v) {_vm.Filter_payment_method=$$v},expression:"Filter_payment_method"}})],1)],1),_vm._v(" "),_c('b-col',{attrs:{"md":"6","sm":"12"}},[_c('b-button',{attrs:{"variant":"primary btn-block ripple m-1","size":"sm"},on:{"click":function($event){return _vm.Get_Sales(_vm.serverParams.page)}}},[_c('i',{staticClass:"i-Filter-2"}),_vm._v("\n            "+_vm._s(_vm.$t("Filter"))+"\n          ")])],1),_vm._v(" "),_c('b-col',{attrs:{"md":"6","sm":"12"}},[_c('b-button',{attrs:{"variant":"danger ripple btn-block m-1","size":"sm"},on:{"click":function($event){return _vm.Reset_Filter()}}},[_c('i',{staticClass:"i-Power-2"}),_vm._v("\n            "+_vm._s(_vm.$t("Reset"))+"\n          ")])],1)],1)],1)])],1)}
 var staticRenderFns = []
 render._withStripped = true
 

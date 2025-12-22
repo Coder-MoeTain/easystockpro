@@ -99,6 +99,18 @@
             </b-form-group>
           </b-col>
 
+          <!-- Payment Method -->
+          <b-col md="12">
+            <b-form-group :label="$t('Paymentchoice')">
+              <v-select
+                v-model="Filter_payment_method"
+                :reduce="label => label.value"
+                :placeholder="$t('Choose_Payment_Method')"
+                :options="payment_methods.map(method => ({label: method, value: method}))"
+              />
+            </b-form-group>
+          </b-col>
+
           <b-col md="6" sm="12">
             <b-button
               @click="Get_Sales(serverParams.page)"
@@ -177,8 +189,10 @@ export default {
       showDropdown: false,
       Filter_Client: "",
       Filter_warehouse: "",
+      Filter_payment_method: "",
       customers: [],
       warehouses: [],
+      payment_methods: [],
       sales: [],
       limit: "10",
       today_mode: true,
@@ -222,7 +236,12 @@ export default {
           tdClass: "text-left",
           thClass: "text-left"
         },
-      
+        {
+          label: this.$t("Paymentchoice"),
+          field: "payment_method",
+          tdClass: "text-left",
+          thClass: "text-left"
+        },
         {
           label: this.$t("Name_product"),
           field: "product_name",
@@ -337,6 +356,7 @@ export default {
       this.search = "";
       this.Filter_Client = "";
       this.Filter_warehouse = "";
+      this.Filter_payment_method = "";
       this.Get_Sales(this.serverParams.page);
     },
 
@@ -365,6 +385,7 @@ export default {
         { title: "Ref", dataKey: "Ref" },
         { title: "Client", dataKey: "client_name" },
         { title: "Warehouse", dataKey: "warehouse_name" },
+        { title: "Payment Method", dataKey: "payment_method" },
         { title: "Product", dataKey: "product_name" },
         { title: "Qty", dataKey: "quantity" },
         { title: "Total", dataKey: "total" },
@@ -383,7 +404,9 @@ export default {
         this.Filter_Client = "";
       } else if (this.Filter_warehouse === null) {
         this.Filter_warehouse = "";
-      } 
+      } else if (this.Filter_payment_method === null) {
+        this.Filter_payment_method = "";
+      }
     },
 
     
@@ -426,6 +449,8 @@ export default {
             this.Filter_Client +
             "&warehouse_id=" +
             this.Filter_warehouse +
+            "&payment_method=" +
+            this.Filter_payment_method +
             "&SortField=" +
             this.serverParams.sort.field +
             "&SortType=" +
@@ -443,6 +468,7 @@ export default {
           this.sales = response.data.sales;
           this.customers = response.data.customers;
           this.warehouses = response.data.warehouses;
+          this.payment_methods = response.data.payment_methods || [];
           this.totalRows = response.data.totalRows;
           this.rows[0].children = this.sales;
           // Complete the animation of theprogress bar.
