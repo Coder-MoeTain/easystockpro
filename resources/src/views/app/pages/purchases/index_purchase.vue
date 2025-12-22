@@ -410,17 +410,7 @@
                     @input="Selected_PaymentMethod"
                     :reduce="label => label.value"
                     :placeholder="$t('PleaseSelect')"
-                    :options="
-                          [
-                            {label: 'Cash', value: 'Cash'},
-                            {label: 'Wave Pay', value: 'Wave Pay'},
-                            {label: 'Kpay', value: 'kpay'},
-                            {label: 'CB Pay', value: 'CB Pay'},
-                            {label: 'AYA Pay', value: 'AYA Pay'},
-                            {label: 'MPU', value: 'MPU'},
-                            {label: 'VISA', value: 'VISA'},
-                            {label: 'Bank', value: 'Bank'},
-                          ]"
+                    :options="payment_methods_options"
                   ></v-select>
                   <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
                 </b-form-group>
@@ -566,7 +556,8 @@ export default {
         message: "",
         client_name: "",
         Ref: ""
-      }
+      },
+      payment_methods_options: []
     };
   },
 
@@ -1286,6 +1277,21 @@ export default {
 
   
 
+    //---------------------------------------Get Payment Methods ------------------------------\\
+    Get_Payment_Methods() {
+      axios
+        .get("get_payment_methods")
+        .then(response => {
+          this.payment_methods_options = response.data.map(method => ({
+            label: method.name,
+            value: method.name
+          }));
+        })
+        .catch(error => {
+          console.error("Error loading payment methods:", error);
+        });
+    },
+
     //------------------------------------ Remove Payment -------------------------------\\
     Remove_Payment(id) {
       this.$swal({
@@ -1348,6 +1354,7 @@ export default {
   //-----------------------------Created function-------------------
   created: function() {
     this.Get_Purchases(1);
+    this.Get_Payment_Methods();
 
     Fire.$on("Delete_Purchase", () => {
       setTimeout(() => {

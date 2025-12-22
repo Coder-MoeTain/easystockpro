@@ -320,17 +320,7 @@
                         @input="Selected_PaymentMethod"
                         v-model="payment.Reglement"
                         :placeholder="$t('PleaseSelect')"
-                        :options="
-                                  [
-                                  {label: 'Cash', value: 'Cash'},
-                                  {label: 'Wave Pay', value: 'Wave Pay'},
-                                  {label: 'Kpay', value: 'kpay'},
-                                  {label: 'CB Pay', value: 'CB Pay'},
-                                  {label: 'AYA Pay', value: 'AYA Pay'},
-                                  {label: 'MPU', value: 'MPU'},
-                                  {label: 'VISA', value: 'VISA'},
-                                  {label: 'Bank', value: 'Bank'},
-                                  ]"
+                        :options="payment_methods_options"
                       ></v-select>
                       <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
                     </b-form-group>
@@ -723,10 +713,11 @@ export default {
         product_variant_id: "",
         is_imei: "",
         imei_number:"",
-      }
+      },
+      payment_methods_options: []
     };
   },
-
+  
   computed: {
     ...mapGetters(["currentUserPermissions","currentUser"]),
 
@@ -1540,12 +1531,28 @@ export default {
             this.isLoading = false;
           }, 500);
         });
+    },
+
+    //---------------------------------------Get Payment Methods ------------------------------\\
+    Get_Payment_Methods() {
+      axios
+        .get("get_payment_methods")
+        .then(response => {
+          this.payment_methods_options = response.data.map(method => ({
+            label: method.name,
+            value: method.name
+          }));
+        })
+        .catch(error => {
+          console.error("Error loading payment methods:", error);
+        });
     }
   },
 
   //----------------------------- Created function-------------------
   created() {
     this.GetElements();
+    this.Get_Payment_Methods();
   }
 };
 </script>

@@ -828,6 +828,16 @@ const routes = [
                             import(
                                 /* webpackChunkName: "System_settings" */ "./views/app/pages/settings/system_settings"
                             )
+                    },
+
+                    // Payment Methods
+                    {
+                        name: "payment_methods",
+                        path: "Payment_Methods",
+                        component: () =>
+                            import(
+                                /* webpackChunkName: "Payment_Methods" */ "./views/app/pages/settings/payment_methods"
+                            )
                     }
                   
                 ]

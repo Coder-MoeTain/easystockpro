@@ -245,6 +245,12 @@ Route::middleware(['auth:api', 'Is_Active'])->group(function () {
     Route::resource('currencies', 'CurrencyController');
     Route::post('currencies/delete/by_selection', 'CurrencyController@delete_by_selection');
 
+    //------------------------------- Payment Methods --------------------------\\
+    //------------------------------------------------------------------\\
+
+    Route::resource('payment_methods', 'PaymentMethodController');
+    Route::post('payment_methods/delete/by_selection', 'PaymentMethodController@delete_by_selection');
+    Route::get('get_payment_methods', 'PaymentMethodController@Get_Payment_Methods');
 
     //------------------------------- WAREHOUSES --------------------------\\
 

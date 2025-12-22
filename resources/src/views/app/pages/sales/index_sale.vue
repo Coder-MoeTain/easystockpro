@@ -471,16 +471,7 @@
                     :disabled="EditPaiementMode"
                     :reduce="label => label.value"
                     :placeholder="$t('PleaseSelect')"
-                    :options="
-                          [
-                          {label: 'Cash', value: 'Cash'},
-                          {label: 'credit card', value: 'credit card'},
-                          {label: 'TPE', value: 'tpe'},
-                          {label: 'cheque', value: 'cheque'},
-                          {label: 'Western Union', value: 'Western Union'},
-                          {label: 'bank transfer', value: 'bank transfer'},
-                          {label: 'other', value: 'other'},
-                          ]"
+                    :options="payment_methods_options"
                   ></v-select>
                   <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
                 </b-form-group>
@@ -856,6 +847,7 @@ export default {
 
       savedPaymentMethods: [],
       hasSavedPaymentMethod: false,
+      payment_methods_options: [],
       useSavedPaymentMethod: false,
       selectedCard:null,
       card_id:'',
@@ -2006,9 +1998,25 @@ export default {
       });
     }
   },
+  //---------------------------------------Get Payment Methods ------------------------------\\
+    Get_Payment_Methods() {
+      axios
+        .get("get_payment_methods")
+        .then(response => {
+          this.payment_methods_options = response.data.map(method => ({
+            label: method.name,
+            value: method.name
+          }));
+        })
+        .catch(error => {
+          console.error("Error loading payment methods:", error);
+        });
+    },
+
   //----------------------------- Created function-------------------\\
   created() {
     this.Get_Sales(1);
+    this.Get_Payment_Methods();
 
     Fire.$on("Create_Facture_sale", () => {
       setTimeout(() => {

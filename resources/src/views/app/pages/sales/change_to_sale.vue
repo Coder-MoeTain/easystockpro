@@ -316,16 +316,7 @@
                         :reduce="label => label.value"
                         v-model="payment.Reglement"
                         :placeholder="$t('PleaseSelect')"
-                        :options="
-                                  [
-                                  {label: 'Cash', value: 'Cash'},
-                                  {label: 'cheque', value: 'cheque'},
-                                   {label: 'TPE', value: 'tpe'},
-                                  {label: 'Western Union', value: 'Western Union'},
-                                  {label: 'bank transfer', value: 'bank transfer'},
-                                  {label: 'credit card', value: 'credit card'},
-                                  {label: 'other', value: 'other'},
-                                  ]"
+                        :options="payment_methods_options"
                       ></v-select>
                       <b-form-invalid-feedback>{{ errors[0] }}</b-form-invalid-feedback>
                     </b-form-group>
@@ -586,6 +577,7 @@ export default {
       clients: [],
       products: [],
       details: [],
+      payment_methods_options: [],
       detail: {},
       sales: [],
       payment: {
@@ -1292,12 +1284,27 @@ export default {
             this.isLoading = false;
           }, 500);
         });
+    },
+    //---------------------------------------Get Payment Methods ------------------------------\\
+    Get_Payment_Methods() {
+      axios
+        .get("get_payment_methods")
+        .then(response => {
+          this.payment_methods_options = response.data.map(method => ({
+            label: method.name,
+            value: method.name
+          }));
+        })
+        .catch(error => {
+          console.error("Error loading payment methods:", error);
+        });
     }
   },
 
   //----------------------------- Created function-------------------
   created() {
     this.GetElements();
+    this.Get_Payment_Methods();
   }
 };
 </script>

@@ -300,6 +300,26 @@
       </b-form>
     </validation-observer>
 
+    <!-- Payment Methods Management -->
+      <b-row class="mt-5" v-if="!isLoading">
+        <b-col lg="12" md="12" sm="12">
+          <b-card no-body :header="$t('PaymentMethods')">
+            <b-card-body>
+              <b-row>
+                <b-col md="12">
+                  <b-form-group>
+                    <b-button variant="primary" @click="GoToPaymentMethods()">
+                      <i class="i-Settings"></i>
+                      {{$t('Manage_Payment_Methods')}}
+                    </b-button>
+                  </b-form-group>
+                </b-col>
+              </b-row>
+            </b-card-body>
+          </b-card>
+        </b-col>
+      </b-row>
+
     <!-- Clear Cache -->
       <b-form @submit.prevent="Clear_Cache" v-if="!isLoading">
         <b-row class="mt-5">
@@ -462,6 +482,11 @@ export default {
     }, 
 
     //---------------------------------- Clear_Cache ----------------\\
+    //---------------------------------- GoToPaymentMethods ----------------
+    GoToPaymentMethods() {
+      this.$router.push({ name: "payment_methods" });
+    },
+
     Clear_Cache() {
       NProgress.start();
       NProgress.set(0.1);
