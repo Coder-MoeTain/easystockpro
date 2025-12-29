@@ -844,10 +844,16 @@
               </div>
             </div>
           </div>
-          <button @click="print_pos()" class="btn btn-outline-primary">
-            <i class="i-Billing"></i>
-            {{$t('print')}}
-          </button>
+          <div class="d-flex justify-content-between mt-3">
+            <button @click="print_pos()" class="btn btn-outline-primary">
+              <i class="i-Billing"></i>
+              {{$t('print')}}
+            </button>
+            <button @click="Download_POS_PDF()" class="btn btn-outline-success">
+              <i class="i-File-TXT"></i>
+              {{$t('DownloadPdf')}}
+            </button>
+          </div>
         </b-modal>
 
         <!-- Modal Add Payment-->
@@ -1275,6 +1281,7 @@ export default {
       category_currentPage: 1,
       category_perPage: 3,
       barcodeFormat: "CODE128",
+      current_sale_id: null,
       invoice_pos: {
         sale: {
           Ref: "",
@@ -1924,6 +1931,7 @@ export default {
       // Start the progress bar.
       NProgress.start();
       NProgress.set(0.1);
+      this.current_sale_id = id; // Store sale ID for PDF download
       axios
         .get("sales_print_invoice/" + id)
         .then(response => {
@@ -1943,6 +1951,42 @@ export default {
         .catch(() => {
           // Complete the animation of the  progress bar.
           setTimeout(() => NProgress.done(), 500);
+        });
+    },
+
+    //------------------------------ Download POS Invoice PDF -------------------------\\
+    Download_POS_PDF() {
+      if (!this.current_sale_id) {
+        this.makeToast("warning", this.$t("NoSaleSelected"), this.$t("Warning"));
+        return;
+      }
+      // Start the progress bar.
+      NProgress.start();
+      NProgress.set(0.1);
+      axios
+        .get("sale_pdf/" + this.current_sale_id, {
+          responseType: "blob", // important
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(response => {
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute(
+            "download",
+            "Sale_" + (this.invoice_pos.sale.Ref || this.current_sale_id) + ".pdf"
+          );
+          document.body.appendChild(link);
+          link.click();
+          // Complete the animation of the  progress bar.
+          setTimeout(() => NProgress.done(), 500);
+        })
+        .catch(() => {
+          // Complete the animation of the  progress bar.
+          setTimeout(() => NProgress.done(), 500);
+          this.makeToast("danger", this.$t("Failed"), this.$t("Failed"));
         });
     },
     //----------------------------------Process Payment ------------------------------\\

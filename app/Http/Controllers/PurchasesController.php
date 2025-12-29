@@ -1402,7 +1402,83 @@ class PurchasesController extends BaseController
          
      }
 
+    //-------------- Print Invoice Purchase ---------------\\
 
+    public function Print_Invoice_Purchase(Request $request, $id)
+    {
+        $helpers = new helpers();
+        $details = array();
+
+        $purchase = Purchase::with('details.product.unitPurchase')
+            ->where('deleted_at', '=', null)
+            ->findOrFail($id);
+
+        $item['id'] = $purchase->id;
+        $item['Ref'] = $purchase->Ref;
+        $item['date'] = $purchase->date;
+        $item['discount'] = number_format($purchase->discount, 2, '.', '');
+        $item['shipping'] = number_format($purchase->shipping, 2, '.', '');
+        $item['taxe'] = number_format($purchase->TaxNet, 2, '.', '');
+        $item['tax_rate'] = $purchase->tax_rate;
+        $item['supplier_name'] = $purchase['provider']->name;
+        $item['warehouse_name'] = $purchase['warehouse']->name;
+        $item['GrandTotal'] = number_format($purchase->GrandTotal, 2, '.', '');
+        $item['paid_amount'] = number_format($purchase->paid_amount, 2, '.', '');
+
+        foreach ($purchase['details'] as $detail) {
+
+             //check if detail has purchase_unit_id Or Null
+             if($detail->purchase_unit_id !== null){
+                $unit = Unit::where('id', $detail->purchase_unit_id)->first();
+            }else{
+                $product_unit_purchase_id = Product::with('unitPurchase')
+                ->where('id', $detail->product_id)
+                ->first();
+                if($product_unit_purchase_id['unitPurchase']){
+                    $unit = Unit::where('id', $product_unit_purchase_id['unitPurchase']->id)->first();
+                }else{
+                    $unit = NULL;
+                }
+            }
+
+            if ($detail->product_variant_id) {
+                $productsVariants = ProductVariant::where('product_id', $detail->product_id)
+                    ->where('id', $detail->product_variant_id)->first();
+
+                $data['code'] = $productsVariants->code;
+                $data['name'] = '['.$productsVariants->name . ']' . $detail['product']['name'];
+            } else {
+                $data['code'] = $detail['product']['code'];
+                $data['name'] = $detail['product']['name'];
+            }
+            
+            $data['quantity'] = number_format($detail->quantity, 2, '.', '');
+            $data['total'] = number_format($detail->total, 2, '.', '');
+            $data['unit_purchase'] = $unit?$unit->ShortName:'';
+
+            $data['is_imei'] = $detail['product']['is_imei'];
+            $data['imei_number'] = $detail->imei_number;
+
+            $details[] = $data;
+        }
+
+        $payments = PaymentPurchase::with('purchase')
+            ->where('purchase_id', $id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $settings = Setting::where('deleted_at', '=', null)->first();
+        $symbol = $helpers->Get_Currency_Code();
+
+        return response()->json([
+            'symbol' => $symbol,
+            'payments' => $payments,
+            'setting' => $settings,
+            'purchase' => $item,
+            'details' => $details,
+        ]);
+
+    }
 
 
 }

@@ -126,6 +126,11 @@
                   {{$t('AddPayment')}}
                 </b-dropdown-item>
 
+                <b-dropdown-item title="Invoice" @click="Invoice_Purchase(props.row.id)">
+                  <i class="nav-icon i-Billing font-weight-bold mr-2"></i>
+                  {{$t('Invoice')}}
+                </b-dropdown-item>
+
                 <b-dropdown-item title="PDF" @click="Invoice_PDF(props.row , props.row.id)">
                   <i class="nav-icon i-File-TXT font-weight-bold mr-2"></i>
                   {{$t('DownloadPdf')}}
@@ -489,6 +494,115 @@
         </b-form>
       </b-modal>
     </validation-observer>
+
+    <!-- Modal Show Invoice Purchase-->
+    <b-modal hide-footer size="sm" scrollable id="Show_invoice_purchase" :title="$t('Invoice')">
+      <div id="invoice-Purchase">
+        <div style="max-width:400px;margin:0px auto">
+          <div class="info">
+            <div class="invoice_logo text-center mb-2">
+              <img :src="'/images/'+invoice_purchase.setting.logo" alt width="140" height="140">
+            </div>
+            <p>
+              <span>{{$t('date')}} : {{invoice_purchase.purchase.date}} <br></span>
+              <span>{{$t('Adress')}} : {{invoice_purchase.setting.CompanyAdress}} <br></span>
+              <span>{{$t('Email')}} : {{invoice_purchase.setting.email}} <br></span>
+              <span>{{$t('Phone')}} : {{invoice_purchase.setting.CompanyPhone}} <br></span>
+              <span>{{$t('Supplier')}} : {{invoice_purchase.purchase.supplier_name}} <br></span>
+              <span>{{$t('warehouse')}} : {{invoice_purchase.purchase.warehouse_name}} <br></span>
+            </p>
+          </div>
+
+          <table class="table_data">
+            <tbody>
+              <tr v-for="detail_invoice in invoice_purchase.details">
+                <td colspan="3">
+                  {{detail_invoice.name}}
+                  <br v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null">
+                  <span v-show="detail_invoice.is_imei && detail_invoice.imei_number !==null ">{{$t('IMEI_SN')}} : {{detail_invoice.imei_number}}</span>
+                  <br>
+                  <span>{{formatNumber(detail_invoice.quantity,2)}} {{detail_invoice.unit_purchase}} x {{formatNumber(detail_invoice.total/detail_invoice.quantity,2)}}</span>
+                </td>
+                <td
+                  style="text-align:right;vertical-align:bottom"
+                >{{formatNumber(detail_invoice.total,2)}}</td>
+              </tr>
+
+              <tr style="margin-top:10px">
+                <td colspan="3" class="total">{{$t('OrderTax')}}</td>
+                <td style="text-align:right;" class="total">{{invoice_purchase.symbol || ''}} {{formatNumber(invoice_purchase.purchase.taxe ,2)}} ({{formatNumber(invoice_purchase.purchase.tax_rate,2)}} %)</td>
+              </tr>
+
+              <tr style="margin-top:10px">
+                <td colspan="3" class="total">{{$t('Discount')}}</td>
+                <td style="text-align:right;" class="total">{{invoice_purchase.symbol || ''}} {{formatNumber(invoice_purchase.purchase.discount ,2)}}</td>
+              </tr>
+
+              <tr style="margin-top:10px">
+                <td colspan="3" class="total">{{$t('Shipping')}}</td>
+                <td style="text-align:right;" class="total">{{invoice_purchase.symbol || ''}} {{formatNumber(invoice_purchase.purchase.shipping ,2)}}</td>
+              </tr>
+
+              <tr style="margin-top:10px">
+                <td colspan="3" class="total">{{$t('Total')}}</td>
+                <td
+                  style="text-align:right;"
+                  class="total"
+                >{{invoice_purchase.symbol || ''}} {{formatNumber(invoice_purchase.purchase.GrandTotal ,2)}}</td>
+              </tr>
+
+              <tr v-show="invoice_purchase.purchase.paid_amount < invoice_purchase.purchase.GrandTotal">
+                <td colspan="3" class="total">{{$t('Paid')}}</td>
+                <td
+                  style="text-align:right;"
+                  class="total"
+                >{{invoice_purchase.symbol || ''}} {{formatNumber(invoice_purchase.purchase.paid_amount ,2)}}</td>
+              </tr>
+
+              <tr v-show="invoice_purchase.purchase.paid_amount < invoice_purchase.purchase.GrandTotal">
+                <td colspan="3" class="total">{{$t('Due')}}</td>
+                <td
+                  style="text-align:right;"
+                  class="total"
+                >{{invoice_purchase.symbol || ''}} {{parseFloat(invoice_purchase.purchase.GrandTotal - invoice_purchase.purchase.paid_amount).toFixed(2)}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table
+            class="change mt-3"
+            style=" font-size: 10px;"
+            v-show="invoice_purchase.purchase.paid_amount > 0"
+          >
+            <thead>
+              <tr style="background: #eee; ">
+                <th style="text-align: left;" colspan="1">{{$t('PayeBy')}}:</th>
+                <th style="text-align: center;" colspan="2">{{$t('Amount')}}:</th>
+                <th style="text-align: right;" colspan="1">{{$t('Change')}}:</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="payment_purchase in payments_purchase">
+                <td style="text-align: left;" colspan="1">{{payment_purchase.Reglement}}</td>
+                <td
+                  style="text-align: center;"
+                  colspan="2"
+                >{{formatNumber(payment_purchase.montant ,2)}}</td>
+                <td
+                  style="text-align: right;"
+                  colspan="1"
+                >{{formatNumber(payment_purchase.change ,2)}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <button @click="print_purchase_invoice()" class="btn btn-outline-primary">
+        <i class="i-Billing"></i>
+        {{$t('print')}}
+      </button>
+    </b-modal>
   </div>
 </template>
 
@@ -557,7 +671,31 @@ export default {
         client_name: "",
         Ref: ""
       },
-      payment_methods_options: []
+      payment_methods_options: [],
+      invoice_purchase: {
+        purchase: {
+          Ref: "",
+          supplier_name: "",
+          warehouse_name: "",
+          discount: "",
+          taxe: "",
+          date: "",
+          tax_rate: "",
+          shipping: "",
+          GrandTotal: "",
+          paid_amount: ""
+        },
+        details: [],
+        setting: {
+          logo: "",
+          CompanyName: "",
+          CompanyAdress: "",
+          email: "",
+          CompanyPhone: ""
+        },
+        symbol: ""
+      },
+      payments_purchase: []
     };
   },
 
@@ -774,6 +912,20 @@ export default {
         variant: variant,
         solid: true
       });
+    },
+
+    //------------------------------Formetted Numbers -------------------------\\
+    formatNumber(number, dec) {
+      const value = (typeof number === "string"
+        ? number
+        : number.toString()
+      ).split(".");
+      if (dec <= 0) return value[0];
+      let formated = value[1] || "";
+      if (formated.length > dec)
+        return `${value[0]}.${formated.substr(0, dec)}`;
+      while (formated.length < dec) formated += "0";
+      return `${value[0]}.${formated}`;
     },
 
     //------ Reset Filter
@@ -1329,6 +1481,45 @@ export default {
             });
         }
       });
+    },
+
+    //------------------------------ Print Purchase Invoice -------------------------\\
+    print_purchase_invoice() {
+      var divContents = document.getElementById("invoice-Purchase").innerHTML;
+      var a = window.open("", "", "height=500, width=500");
+      a.document.write(
+        '<link rel="stylesheet" href="/css/pos_print.css"><html>'
+      );
+      a.document.write("<body >");
+      a.document.write(divContents);
+      a.document.write("</body></html>");
+      a.document.close();
+
+      setTimeout(() => {
+         a.print();
+      }, 1000);
+    },
+
+    //-------------------------------- Invoice Purchase ------------------------------\\
+    Invoice_Purchase(id) {
+      // Start the progress bar.
+      NProgress.start();
+      NProgress.set(0.1);
+      axios
+        .get("purchases_print_invoice/" + id)
+        .then(response => {
+          this.invoice_purchase = response.data;
+          this.payments_purchase = response.data.payments || [];
+          setTimeout(() => {
+            // Complete the animation of the  progress bar.
+            NProgress.done();
+            this.$bvModal.show("Show_invoice_purchase");
+          }, 500);
+        })
+        .catch(() => {
+          // Complete the animation of the  progress bar.
+          setTimeout(() => NProgress.done(), 500);
+        });
     },
 
     //----------------------------------------- Get All Payments  -------------------------------\\

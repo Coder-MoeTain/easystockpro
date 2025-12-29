@@ -449,3 +449,4 @@ Route::middleware(['auth:api', 'Is_Active'])->group(function () {
     Route::get('payment_return_purchase_pdf/{id}', 'PaymentPurchaseReturnsController@payment_return');
     Route::get('payment_sale_pdf/{id}', 'PaymentSalesController@payment_sale');
     Route::get('sales_print_invoice/{id}', 'SalesController@Print_Invoice_POS');
+    Route::get('purchases_print_invoice/{id}', 'PurchasesController@Print_Invoice_Purchase');
