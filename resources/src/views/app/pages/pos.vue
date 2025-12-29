@@ -1963,15 +1963,26 @@ export default {
       // Start the progress bar.
       NProgress.start();
       NProgress.set(0.1);
-      axios
-        .get("sale_pdf/" + this.current_sale_id, {
-          responseType: "blob", // important
-          headers: {
-            "Content-Type": "application/json"
-          }
-        })
+      
+      // Use axios with proper blob handling
+      // Create a new axios instance to bypass interceptors for this request
+      const axiosInstance = axios.create({
+        baseURL: '/api/',
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      });
+      
+      axiosInstance
+        .get("sale_pdf/" + this.current_sale_id)
         .then(response => {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
+          // Check if response is actually a blob
+          const blob = response.data instanceof Blob 
+            ? response.data 
+            : new Blob([response.data], { type: 'application/pdf' });
+          
+          const url = window.URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
           link.setAttribute(
@@ -1980,13 +1991,37 @@ export default {
           );
           document.body.appendChild(link);
           link.click();
-          // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
+          
+          // Clean up
+          setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            NProgress.done();
+          }, 100);
         })
-        .catch(() => {
+        .catch(error => {
           // Complete the animation of the  progress bar.
-          setTimeout(() => NProgress.done(), 500);
-          this.makeToast("danger", this.$t("Failed"), this.$t("Failed"));
+          NProgress.done();
+          console.error("PDF Download Error:", error);
+          console.error("Error Response:", error.response);
+          
+          // Try to read error message from blob response if available
+          if (error.response && error.response.data instanceof Blob) {
+            error.response.data.text().then(text => {
+              try {
+                const errorData = JSON.parse(text);
+                this.makeToast("danger", errorData.message || this.$t("Failed"), this.$t("Failed"));
+              } catch (e) {
+                this.makeToast("danger", this.$t("Failed"), this.$t("Failed"));
+              }
+            });
+          } else if (error.response && error.response.status === 401) {
+            this.makeToast("danger", this.$t("Unauthorized"), this.$t("Failed"));
+          } else if (error.response && error.response.status === 404) {
+            this.makeToast("danger", this.$t("SaleNotFound"), this.$t("Failed"));
+          } else {
+            this.makeToast("danger", error.response?.data?.message || this.$t("Failed"), this.$t("Failed"));
+          }
         });
     },
     //----------------------------------Process Payment ------------------------------\\

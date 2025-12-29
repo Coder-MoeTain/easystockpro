@@ -1998,29 +1998,58 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
     // Start the progress bar.
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().start();
     nprogress__WEBPACK_IMPORTED_MODULE_0___default().set(0.1);
-    axios.get("sale_pdf/" + this.current_sale_id, {
-      responseType: "blob",
-      // important
+
+    // Use axios with proper blob handling
+    // Create a new axios instance to bypass interceptors for this request
+    var axiosInstance = axios.create({
+      baseURL: '/api/',
+      responseType: 'blob',
       headers: {
-        "Content-Type": "application/json"
+        'Accept': 'application/pdf'
       }
-    }).then(function (response) {
-      var url = window.URL.createObjectURL(new Blob([response.data]));
+    });
+    axiosInstance.get("sale_pdf/" + this.current_sale_id).then(function (response) {
+      // Check if response is actually a blob
+      var blob = response.data instanceof Blob ? response.data : new Blob([response.data], {
+        type: 'application/pdf'
+      });
+      var url = window.URL.createObjectURL(blob);
       var link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", "Sale_" + (_this17.invoice_pos.sale.Ref || _this17.current_sale_id) + ".pdf");
       document.body.appendChild(link);
       link.click();
-      // Complete the animation of the  progress bar.
+
+      // Clean up
       setTimeout(function () {
-        return nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      }, 500);
-    })["catch"](function () {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+      }, 100);
+    })["catch"](function (error) {
       // Complete the animation of the  progress bar.
-      setTimeout(function () {
-        return nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
-      }, 500);
-      _this17.makeToast("danger", _this17.$t("Failed"), _this17.$t("Failed"));
+      nprogress__WEBPACK_IMPORTED_MODULE_0___default().done();
+      console.error("PDF Download Error:", error);
+      console.error("Error Response:", error.response);
+
+      // Try to read error message from blob response if available
+      if (error.response && error.response.data instanceof Blob) {
+        error.response.data.text().then(function (text) {
+          try {
+            var errorData = JSON.parse(text);
+            _this17.makeToast("danger", errorData.message || _this17.$t("Failed"), _this17.$t("Failed"));
+          } catch (e) {
+            _this17.makeToast("danger", _this17.$t("Failed"), _this17.$t("Failed"));
+          }
+        });
+      } else if (error.response && error.response.status === 401) {
+        _this17.makeToast("danger", _this17.$t("Unauthorized"), _this17.$t("Failed"));
+      } else if (error.response && error.response.status === 404) {
+        _this17.makeToast("danger", _this17.$t("SaleNotFound"), _this17.$t("Failed"));
+      } else {
+        var _error$response;
+        _this17.makeToast("danger", ((_error$response = error.response) === null || _error$response === void 0 || (_error$response = _error$response.data) === null || _error$response === void 0 ? void 0 : _error$response.message) || _this17.$t("Failed"), _this17.$t("Failed"));
+      }
     });
   }), _defineProperty(_objectSpread2, "processPayment", function processPayment() {
     var _this18 = this;
